@@ -33,18 +33,31 @@ npm install
 
 ## 환경 설정
 
-`.env` 파일을 프로젝트 루트 디렉토리에 생성하고 다음 내용을 설정하세요:
+1. 환경 변수 파일 생성:
 
-```env
-NEIS_API_KEY=your_api_key_here
-NEIS_API_URL=https://open.neis.go.kr/hub/mealServiceDietInfo
-DEFAULT_OFFICE_CODE=your_office_code
-DEFAULT_SCHOOL_CODE=your_school_code
+```bash
+# .env.sample 파일을 .env로 복사
+cp .env.sample .env
 ```
 
-- `NEIS_API_KEY`: NEIS Open API 인증 키
+2. `.env` 파일을 열어 실제 값으로 수정:
+
+```env
+# NEIS Open API 설정
+NEIS_API_KEY=your_api_key_here
+NEIS_API_URL=https://open.neis.go.kr/hub/mealServiceDietInfo
+
+# 기본 학교 정보
+DEFAULT_OFFICE_CODE=B10  # 예: B10 (서울특별시교육청)
+DEFAULT_SCHOOL_CODE=7031138  # 학교 고유 코드
+```
+
+필수 환경 변수:
+
+- `NEIS_API_KEY`: NEIS Open API 인증 키 (https://open.neis.go.kr/portal/guide/actKeyPage.do 에서 발급)
+- `NEIS_API_URL`: NEIS API 엔드포인트 (기본값 사용 권장)
 - `DEFAULT_OFFICE_CODE`: 시도교육청코드 (예: 'B10'은 서울특별시교육청)
-- `DEFAULT_SCHOOL_CODE`: 학교코드
+- `DEFAULT_SCHOOL_CODE`: 학교코드 (NEIS에서 제공하는 표준 학교코드)
 
 ## 실행 방법
 
