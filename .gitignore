@@ -25,4 +25,5 @@ Thumbs.db
 
 # Custom
 .cursorignore
-.package-lock.json
+package-lock.json
+
