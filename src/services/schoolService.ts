@@ -1,4 +1,4 @@
-import { MealRequest, ApiResponse, apiResponseSchema } from '../types/mealTypes.js';
+import { SchoolRequest, ApiResponse, apiResponseSchema } from '../types/schoolTypes.js';
 import 'dotenv/config';
 
 export class ApiError extends Error {
@@ -11,17 +11,13 @@ export class ApiError extends Error {
   }
 }
 
-export class MealService {
+export class SchoolService {
   private apiKey: string;
   private apiUrl: string;
-  private officeCode: string;
-  private schoolCode: string;
 
   constructor() {
     this.apiKey = process.env.NEIS_API_KEY ?? '';
-    this.apiUrl = `${process.env.NEIS_API_URL ?? ''}/mealServiceDietInfo`;
-    this.officeCode = process.env.DEFAULT_OFFICE_CODE ?? '';
-    this.schoolCode = process.env.DEFAULT_SCHOOL_CODE ?? '';
+    this.apiUrl = `${process.env.NEIS_API_URL ?? ''}/schoolInfo`;
 
     this.validateEnvironment();
   }
@@ -29,22 +25,20 @@ export class MealService {
   private validateEnvironment(): void {
     if (!this.apiKey) throw new Error('NEIS_API_KEY is not set');
     if (!this.apiUrl) throw new Error('NEIS_API_URL is not set');
-    if (!this.officeCode) throw new Error('DEFAULT_OFFICE_CODE is not set');
-    if (!this.schoolCode) throw new Error('DEFAULT_SCHOOL_CODE is not set');
   }
 
-  private buildSearchParams(params: MealRequest): URLSearchParams {
+  private buildSearchParams(params: SchoolRequest): URLSearchParams {
     const searchParams = new URLSearchParams({
       KEY: this.apiKey,
       Type: params.Type,
-      ATPT_OFCDC_SC_CODE: params.ATPT_OFCDC_SC_CODE || this.officeCode,
-      SD_SCHUL_CODE: params.SD_SCHUL_CODE || this.schoolCode,
     });
 
-    if (params.MMEAL_SC_CODE) searchParams.append('MMEAL_SC_CODE', params.MMEAL_SC_CODE);
-    if (params.MLSV_YMD) searchParams.append('MLSV_YMD', params.MLSV_YMD);
-    if (params.MLSV_FROM_YMD) searchParams.append('MLSV_FROM_YMD', params.MLSV_FROM_YMD);
-    if (params.MLSV_TO_YMD) searchParams.append('MLSV_TO_YMD', params.MLSV_TO_YMD);
+    if (params.ATPT_OFCDC_SC_CODE) searchParams.append('ATPT_OFCDC_SC_CODE', params.ATPT_OFCDC_SC_CODE);
+    if (params.SD_SCHUL_CODE) searchParams.append('SD_SCHUL_CODE', params.SD_SCHUL_CODE);
+    if (params.SCHUL_NM) searchParams.append('SCHUL_NM', params.SCHUL_NM);
+    if (params.SCHUL_KND_SC_NM) searchParams.append('SCHUL_KND_SC_NM', params.SCHUL_KND_SC_NM);
+    if (params.LCTN_SC_NM) searchParams.append('LCTN_SC_NM', params.LCTN_SC_NM);
+    if (params.FOND_SC_NM) searchParams.append('FOND_SC_NM', params.FOND_SC_NM);
 
     return searchParams;
   }
@@ -62,13 +56,13 @@ export class MealService {
   }
 
   private validateApiResponse(data: ApiResponse): void {
-    const result = data.mealServiceDietInfo?.[0]?.head?.[1]?.RESULT;
+    const result = data.schoolInfo?.[0]?.head?.[1]?.RESULT;
     if (result && result.CODE !== 'INFO-000') {
       throw new ApiError(result.CODE, result.MESSAGE);
     }
   }
 
-  async getMealInfo(params: MealRequest): Promise<ApiResponse> {
+  async getSchoolInfo(params: SchoolRequest): Promise<ApiResponse> {
     const searchParams = this.buildSearchParams(params);
     const url = `${this.apiUrl}?${searchParams.toString()}`;
     
