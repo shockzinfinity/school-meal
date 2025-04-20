@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "school-meal": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "cd",
+        "C:\\Users\\shockz\\source\\repos\\mcps\\school-meal",
+        "&&",
+        "npm",
+        "run",
+        "start"
+      ],
+      "enabled": true
+    }
+  }
+}

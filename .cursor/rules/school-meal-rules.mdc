@@ -1,0 +1,115 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# School Meal MCP Server Rules
+
+## 프로젝트 구조
+- `src/`: 소스 코드 디렉토리
+  - `services/`: API 서비스 로직 (NEIS API 통신)
+  - `tools/`: MCP 도구 정의 (도구 파라미터 및 실행 로직)
+  - `types/`: 타입 및 스키마 정의 (Zod 스키마 포함)
+  - `resources/`: 리소스 파일 (CSV, XLS 등)
+  - `index.ts`: MCP 서버 진입점
+  - `test.ts`: 급식 정보 조회 테스트
+  - `test2.ts`: 학교 정보 조회 테스트
+
+## 네이밍 규칙
+- 파일명: 기능을 명확히 표현하는 camelCase 사용
+  - 서비스: `*Service.ts` (예: `mealService.ts`)
+  - 도구: `*Tool.ts` (예: `schoolTool.ts`)
+  - 타입: `*Types.ts` (예: `mealTypes.ts`)
+- 변수/함수명: camelCase
+- 클래스명: PascalCase
+- 상수: UPPER_SNAKE_CASE
+- 타입/인터페이스: PascalCase
+
+## 타입 정의
+- API 요청/응답 타입은 각각의 `types` 파일에 정의
+  - 요청 타입: `[Name]Request` (예: `SchoolRequest`)
+  - 응답 타입: `[Name]Response` (예: `ApiResponse`)
+  - 정보 타입: `[Name]Info` (예: `SchoolInfo`)
+- Zod 스키마는 타입 정의 후 작성
+  - 요청 스키마: `[name]RequestSchema`
+  - 응답 스키마: `apiResponseSchema`
+  - 정보 스키마: `[name]InfoSchema`
+- API 응답 스키마는 NEIS API 명세를 따름
+
+## API 응답 구조
+모든 API 응답은 동일한 구조를 따름:
+```typescript
+export const apiResponseSchema = z.object({
+  [serviceName]: z.array(
+    z.union([
+      z.object({
+        head: z.array(
+          z.union([
+            z.object({ list_total_count: z.number() }),
+            z.object({ RESULT: neisResultSchema })
+          ])
+        )
+      }),
+      z.object({
+        row: z.array(dataSchema)
+      })
+    ])
+  ).optional()
+});
+```
+
+## 서비스 클래스
+@services/*Service.ts
+- 환경 변수 검증
+  - 필수 환경 변수: `NEIS_API_KEY`, `NEIS_API_URL`
+  - 검증 시점: 생성자에서 수행
+- API 요청 파라미터 구성
+  - 공통 파라미터: `KEY`, `Type`
+  - 선택적 파라미터: 각 API별 정의
+- API 응답 검증
+  - 응답 형식 검증: Zod 스키마 사용
+  - 결과 코드 검증: `INFO-000` 확인
+- 에러 처리
+  - API 에러: `ApiError` 클래스 사용
+  - 환경변수 에러: `Error` 클래스 사용
+  - 네트워크 에러: 상세 메시지 포함
+
+## MCP 도구
+@tools/*Tool.ts
+- Zod 스키마로 파라미터 검증
+  - 필수 파라미터: `KEY`
+  - 선택적 파라미터: 각 도구별 정의
+- 서비스 클래스를 통한 API 호출
+  - 싱글톤 패턴 사용
+  - 에러 처리 포함
+- 응답 포맷팅
+  - 성공: `{ content: [{ type: 'text', text: string }] }`
+  - 실패: `{ content: [{ type: 'text', text: string }], isError: true }`
+
+## 테스트
+- 급식 정보 조회 (@test.ts)
+  - 일일 급식 정보 조회
+  - 기간별 급식 정보 조회
+- 학교 정보 조회 (@test2.ts)
+  - 학교 코드로 조회
+  - 학교명으로 검색
+- 환경 변수를 통한 기본값 설정
+  - `.env` 파일 사용
+  - 빌드 시 `dist` 폴더로 복사
+
+## 환경 변수
+- `NEIS_API_KEY`: NEIS Open API 인증 키 (필수)
+- `NEIS_API_URL`: NEIS Open API 기본 URL (필수)
+- `DEFAULT_OFFICE_CODE`: 기본 교육청 코드 (선택)
+- `DEFAULT_SCHOOL_CODE`: 기본 학교 코드 (선택)
+
+## 에러 처리
+- API 에러
+  - `ApiError` 클래스 사용
+  - 결과 코드와 메시지 포함
+- 검증 에러
+  - Zod 검증 실패 시 상세 메시지
+  - 환경 변수 누락 시 명확한 메시지
+- 네트워크 에러
+  - HTTP 상태 코드 포함
+  - 상세 에러 메시지 포함
